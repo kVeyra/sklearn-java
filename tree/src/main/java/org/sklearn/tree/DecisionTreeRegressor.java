@@ -2,6 +2,7 @@ package org.sklearn.tree;
 
 import org.sklearn.core.Predictor;
 import org.sklearn.math.Matrix;
+import org.sklearn.math.RandomGenerator;
 import org.sklearn.math.Vector;
 import org.sklearn.utils.Validation;
 
@@ -41,8 +42,10 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
     private int maxDepth;
     private int minSamplesSplit;
     private int minSamplesLeaf;
+    private boolean useRandomSplit;
     private boolean fitted;
     private int nFeatures;
+    private long seed;
 
     /**
      * Create a decision tree regressor.
@@ -52,9 +55,25 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
      * @param minSamplesLeaf   minimum samples required at a leaf
      */
     public DecisionTreeRegressor(int maxDepth, int minSamplesSplit, int minSamplesLeaf) {
+        this(maxDepth, minSamplesSplit, minSamplesLeaf, false, 42);
+    }
+
+    /**
+     * Create a decision tree regressor with full control.
+     *
+     * @param maxDepth         maximum depth
+     * @param minSamplesSplit  min samples required to split
+     * @param minSamplesLeaf   min samples required at a leaf
+     * @param useRandomSplit   if true, pick random thresholds (for ExtraTrees)
+     * @param seed             random seed
+     */
+    public DecisionTreeRegressor(int maxDepth, int minSamplesSplit,
+                                  int minSamplesLeaf, boolean useRandomSplit, long seed) {
         this.maxDepth = maxDepth;
         this.minSamplesSplit = minSamplesSplit;
         this.minSamplesLeaf = minSamplesLeaf;
+        this.useRandomSplit = useRandomSplit;
+        this.seed = seed;
     }
 
     @Override
@@ -74,14 +93,14 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
         nodes = new Node[Math.max(1, 2 * (int) Math.pow(2, Math.min(maxDepth, 15)))];
         nodeCount = 0;
 
-        buildTree(X, y, sampleIndex, 0, n, 0);
+        buildTree(X, y, sampleIndex, 0, n, 0, new RandomGenerator(seed));
 
         fitted = true;
         return this;
     }
 
     private int buildTree(Matrix X, Vector y, int[] sampleIdx, int start,
-                          int end, int depth) {
+                          int end, int depth, RandomGenerator rng) {
         int nodeId = nodeCount++;
         if (nodeId >= nodes.length) {
             nodes = Arrays.copyOf(nodes, nodes.length * 2);
@@ -109,7 +128,7 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
             return nodeId;
         }
 
-        BestSplit best = findBestSplit(X, y, sampleIdx, start, end);
+        BestSplit best = findBestSplit(X, y, sampleIdx, start, end, rng);
 
         if (best == null || best.improvement < -1e-15) {
             node.isLeaf = true;
@@ -140,8 +159,8 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
         System.arraycopy(leftOrder, 0, sampleIdx, start, leftCount);
         System.arraycopy(rightOrder, 0, sampleIdx, start + leftCount, rightCount);
 
-        int leftChild = buildTree(X, y, sampleIdx, start, start + leftCount, depth + 1);
-        int rightChild = buildTree(X, y, sampleIdx, start + leftCount, end, depth + 1);
+        int leftChild = buildTree(X, y, sampleIdx, start, start + leftCount, depth + 1, rng);
+        int rightChild = buildTree(X, y, sampleIdx, start + leftCount, end, depth + 1, rng);
 
         node.left = leftChild;
         node.right = rightChild;
@@ -156,7 +175,7 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
     }
 
     private BestSplit findBestSplit(Matrix X, Vector y, int[] sampleIdx,
-                                    int start, int end) {
+                                    int start, int end, RandomGenerator rng) {
         int n = end - start;
         int m = nFeatures;
         BestSplit best = null;
@@ -172,6 +191,65 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
             totalVar += diff * diff;
         }
         totalVar /= n;
+
+        if (useRandomSplit) {
+            int nAttempts = Math.min(m, 10);
+            for (int attempt = 0; attempt < nAttempts; attempt++) {
+                int f = rng.nextInt(m);
+                double minVal = Double.POSITIVE_INFINITY;
+                double maxVal = Double.NEGATIVE_INFINITY;
+                for (int i = start; i < end; i++) {
+                    double v = X.get(sampleIdx[i], f);
+                    if (v < minVal) {
+                        minVal = v;
+                    }
+                    if (v > maxVal) {
+                        maxVal = v;
+                    }
+                }
+                if (minVal == maxVal) {
+                    continue;
+                }
+                double threshold = minVal + rng.nextDouble() * (maxVal - minVal);
+
+                int leftN = 0, rightN = 0;
+                double leftSum = 0.0, leftSumSq = 0.0;
+                double rightSum = 0.0, rightSumSq = 0.0;
+                for (int i = start; i < end; i++) {
+                    int idx = sampleIdx[i];
+                    double val = y.get(idx);
+                    if (X.get(idx, f) <= threshold) {
+                        leftSum += val;
+                        leftSumSq += val * val;
+                        leftN++;
+                    } else {
+                        rightSum += val;
+                        rightSumSq += val * val;
+                        rightN++;
+                    }
+                }
+                if (leftN < minSamplesLeaf || rightN < minSamplesLeaf) {
+                    continue;
+                }
+
+                double leftMean = leftSum / leftN;
+                double leftMse = leftSumSq / leftN - leftMean * leftMean;
+                double rightMean = rightSum / rightN;
+                double rightMse = rightSumSq / rightN - rightMean * rightMean;
+
+                double weightedChildMse =
+                    (double) leftN / n * leftMse + (double) rightN / n * rightMse;
+                double improvement = totalVar - weightedChildMse;
+
+                if (improvement >= -1e-15 && (best == null || improvement > best.improvement)) {
+                    best = new BestSplit();
+                    best.feature = f;
+                    best.threshold = threshold;
+                    best.improvement = improvement;
+                }
+            }
+            return best;
+        }
 
         for (int f = 0; f < m; f++) {
             Integer[] sorted = new Integer[n];
@@ -303,6 +381,7 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
         params.put("max_depth", maxDepth);
         params.put("min_samples_split", minSamplesSplit);
         params.put("min_samples_leaf", minSamplesLeaf);
+        params.put("use_random_split", useRandomSplit);
         return Collections.unmodifiableMap(params);
     }
 }

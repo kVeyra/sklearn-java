@@ -2,6 +2,7 @@ package org.sklearn.tree;
 
 import org.sklearn.core.Predictor;
 import org.sklearn.math.Matrix;
+import org.sklearn.math.RandomGenerator;
 import org.sklearn.math.Vector;
 import org.sklearn.utils.Validation;
 
@@ -48,9 +49,11 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
     private int minSamplesSplit;
     private int minSamplesLeaf;
     private String criterion;
+    private boolean useRandomSplit;
     private boolean fitted;
     private int[] classes;
     private int nFeatures;
+    private long seed;
 
     /**
      * Create a decision tree classifier.
@@ -73,6 +76,22 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
      */
     public DecisionTreeClassifier(int maxDepth, int minSamplesSplit,
                                   int minSamplesLeaf, String criterion) {
+        this(maxDepth, minSamplesSplit, minSamplesLeaf, criterion, false, 42);
+    }
+
+    /**
+     * Create a decision tree classifier with full control.
+     *
+     * @param maxDepth         maximum depth
+     * @param minSamplesSplit  min samples required to split
+     * @param minSamplesLeaf   min samples required at a leaf
+     * @param criterion        "gini" or "entropy"
+     * @param useRandomSplit   if true, pick random thresholds (for ExtraTrees)
+     * @param seed             random seed
+     */
+    public DecisionTreeClassifier(int maxDepth, int minSamplesSplit,
+                                  int minSamplesLeaf, String criterion,
+                                  boolean useRandomSplit, long seed) {
         if (!criterion.equals("gini") && !criterion.equals("entropy")) {
             throw new IllegalArgumentException(
                 "criterion must be 'gini' or 'entropy', got: " + criterion);
@@ -81,6 +100,8 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
         this.minSamplesSplit = minSamplesSplit;
         this.minSamplesLeaf = minSamplesLeaf;
         this.criterion = criterion;
+        this.useRandomSplit = useRandomSplit;
+        this.seed = seed;
     }
 
     @Override
@@ -108,14 +129,14 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
         nodes = new Node[Math.max(1, 2 * (int) Math.pow(2, Math.min(maxDepth, 15)))];
         nodeCount = 0;
 
-        buildTree(X, y, sampleIndex, 0, n, 0, nClasses);
+        buildTree(X, y, sampleIndex, 0, n, 0, nClasses, new RandomGenerator(seed));
 
         fitted = true;
         return this;
     }
 
     private int buildTree(Matrix X, Vector y, int[] sampleIdx, int start,
-                          int end, int depth, int nClasses) {
+                          int end, int depth, int nClasses, RandomGenerator rng) {
         int nodeId = nodeCount++;
         if (nodeId >= nodes.length) {
             nodes = Arrays.copyOf(nodes, nodes.length * 2);
@@ -143,7 +164,7 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
             return nodeId;
         }
 
-        BestSplit best = findBestSplit(X, y, sampleIdx, start, end, nClasses);
+        BestSplit best = findBestSplit(X, y, sampleIdx, start, end, nClasses, rng);
 
         if (best == null || best.improvement < -1e-15) {
             node.isLeaf = true;
@@ -177,9 +198,9 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
         System.arraycopy(rightOrder, 0, sampleIdx, start + leftCount, rightCount);
 
         int leftChild = buildTree(X, y, sampleIdx, start, start + leftCount,
-            depth + 1, nClasses);
+            depth + 1, nClasses, rng);
         int rightChild = buildTree(X, y, sampleIdx, start + leftCount, end,
-            depth + 1, nClasses);
+            depth + 1, nClasses, rng);
 
         node.left = leftChild;
         node.right = rightChild;
@@ -194,16 +215,76 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
     }
 
     private BestSplit findBestSplit(Matrix X, Vector y, int[] sampleIdx,
-                                    int start, int end, int nClasses) {
+                                    int start, int end, int nClasses,
+                                    RandomGenerator rng) {
         int n = end - start;
         int m = nFeatures;
         BestSplit best = null;
 
-        // Total class counts for this node
         double[] totalCounts = new double[nClasses];
         for (int i = start; i < end; i++) {
             int label = (int) y.get(sampleIdx[i]);
             totalCounts[indexOf(classes, label)]++;
+        }
+
+        if (useRandomSplit) {
+            int nAttempts = Math.min(m, 10);
+            for (int attempt = 0; attempt < nAttempts; attempt++) {
+                int f = rng.nextInt(m);
+                double minVal = Double.POSITIVE_INFINITY;
+                double maxVal = Double.NEGATIVE_INFINITY;
+                for (int i = start; i < end; i++) {
+                    double v = X.get(sampleIdx[i], f);
+                    if (v < minVal) {
+                        minVal = v;
+                    }
+                    if (v > maxVal) {
+                        maxVal = v;
+                    }
+                }
+                if (minVal == maxVal) {
+                    continue;
+                }
+                double threshold = minVal + rng.nextDouble() * (maxVal - minVal);
+
+                int leftN = 0, rightN = 0;
+                double[] leftCounts = new double[nClasses];
+                for (int i = start; i < end; i++) {
+                    int idx = sampleIdx[i];
+                    if (X.get(idx, f) <= threshold) {
+                        int label = (int) y.get(idx);
+                        leftCounts[indexOf(classes, label)]++;
+                        leftN++;
+                    } else {
+                        rightN++;
+                    }
+                }
+                if (leftN < minSamplesLeaf || rightN < minSamplesLeaf) {
+                    continue;
+                }
+
+                double leftImp = impurity(leftCounts, leftN);
+                double rightImp = 0.0;
+                if (rightN > 0) {
+                    double[] rightCounts = new double[nClasses];
+                    for (int k = 0; k < nClasses; k++) {
+                        rightCounts[k] = totalCounts[k] - leftCounts[k];
+                    }
+                    rightImp = impurity(rightCounts, rightN);
+                }
+
+                double weightedChildImp =
+                    (double) leftN / n * leftImp + (double) rightN / n * rightImp;
+                double improvement = impurity(totalCounts, n) - weightedChildImp;
+
+                if (improvement >= -1e-15 && (best == null || improvement > best.improvement)) {
+                    best = new BestSplit();
+                    best.feature = f;
+                    best.threshold = threshold;
+                    best.improvement = improvement;
+                }
+            }
+            return best;
         }
 
         for (int f = 0; f < m; f++) {
@@ -219,7 +300,6 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
             });
 
             double[] leftCounts = new double[nClasses];
-            double prevVal = X.get(sampleIdx[start + sorted[0]], f);
 
             for (int s = 0; s < n - 1; s++) {
                 int idx = sampleIdx[start + sorted[s]];
@@ -228,7 +308,6 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
                 double curVal = X.get(idx, f);
                 double nextVal = X.get(sampleIdx[start + sorted[s + 1]], f);
 
-                // Skip duplicate values - no threshold can split between identical values
                 if (curVal == nextVal) {
                     continue;
                 }
@@ -415,6 +494,7 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
         params.put("min_samples_split", minSamplesSplit);
         params.put("min_samples_leaf", minSamplesLeaf);
         params.put("criterion", criterion);
+        params.put("use_random_split", useRandomSplit);
         return Collections.unmodifiableMap(params);
     }
 }
