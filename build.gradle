@@ -1,0 +1,89 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version '6.1.7' apply false
+    id 'net.ltgt.errorprone' version '4.1.0' apply false
+}
+
+allprojects {
+    group = 'org.sklearn'
+    version = '0.1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'jacoco'
+    apply plugin: 'checkstyle'
+    apply plugin: 'com.github.spotbugs'
+    apply plugin: 'net.ltgt.errorprone'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    compileJava {
+        options.compilerArgs += [
+            '-Xlint:all',
+            '-Xlint:-serial',
+            '-Xlint:-processing'
+        ]
+        options.encoding = 'UTF-8'
+        options.errorprone {
+            enabled = true
+            disableWarningsInGeneratedCode = true
+        }
+    }
+
+    compileTestJava {
+        options.encoding = 'UTF-8'
+        options.errorprone {
+            enabled = false
+        }
+    }
+
+    checkstyle {
+        toolVersion = '10.21.3'
+        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+        maxWarnings = 0
+    }
+
+    spotbugs {
+        toolVersion = '4.9.3'
+        reportLevel = 'high'
+        excludeFilter = rootProject.file('config/spotbugs/excludes.xml')
+    }
+
+    spotbugsMain {
+        reports {
+            text {
+                required = true
+            }
+        }
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+            html.required = true
+        }
+    }
+
+    dependencies {
+        testImplementation platform('org.junit:junit-bom:5.11.4')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    }
+
+    test {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+}
