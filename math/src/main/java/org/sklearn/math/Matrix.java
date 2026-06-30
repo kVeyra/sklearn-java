@@ -3,6 +3,15 @@ package org.sklearn.math;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * A dense matrix of double values stored in row-major order.
+ *
+ * <p>Provides matrix arithmetic (add, subtract, multiply, transpose),
+ * linear algebra operations (inverse via LU decomposition, determinant,
+ * solve), and utility methods (reshape, trace, sum, mean).
+ *
+ * <p>All operations produce new matrices unless documented as in-place.
+ */
 public final class Matrix {
 
     private final double[][] data;
@@ -283,7 +292,9 @@ public final class Matrix {
         int bCols = b.cols;
 
         int[] pivot = new int[n];
-        for (int i = 0; i < n; i++) pivot[i] = i;
+        for (int i = 0; i < n; i++) {
+            pivot[i] = i;
+        }
 
         for (int col = 0; col < n - 1; col++) {
             double maxVal = Math.abs(a[col][col]);
@@ -354,7 +365,9 @@ public final class Matrix {
                     maxRow = row;
                 }
             }
-            if (maxVal < 1e-15) return 0.0;
+            if (maxVal < 1e-15) {
+                return 0.0;
+            }
             if (maxRow != col) {
                 double[] tmp = a[col]; a[col] = a[maxRow]; a[maxRow] = tmp;
                 det = -det;
@@ -382,9 +395,15 @@ public final class Matrix {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Matrix matrix)) return false;
-        if (rows != matrix.rows || cols != matrix.cols) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Matrix matrix)) {
+            return false;
+        }
+        if (rows != matrix.rows || cols != matrix.cols) {
+            return false;
+        }
         return Arrays.deepEquals(data, matrix.data);
     }
 

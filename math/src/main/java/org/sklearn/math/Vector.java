@@ -3,6 +3,13 @@ package org.sklearn.math;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * A dense vector of double values.
+ *
+ * <p>Provides element-wise operations, dot product, norms,
+ * and utility methods. All operations produce new vectors
+ * unless explicitly documented as in-place.
+ */
 public final class Vector {
 
     private final double[] data;
@@ -95,7 +102,9 @@ public final class Vector {
         }
         double m = data[0];
         for (int i = 1; i < size; i++) {
-            if (data[i] < m) m = data[i];
+            if (data[i] < m) {
+                m = data[i];
+            }
         }
         return m;
     }
@@ -106,7 +115,9 @@ public final class Vector {
         }
         double m = data[0];
         for (int i = 1; i < size; i++) {
-            if (data[i] > m) m = data[i];
+            if (data[i] > m) {
+                m = data[i];
+            }
         }
         return m;
     }
@@ -202,8 +213,12 @@ public final class Vector {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Vector vector)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Vector vector)) {
+            return false;
+        }
         return size == vector.size && Arrays.equals(data, vector.data);
     }
 

@@ -75,8 +75,8 @@ class MatrixTest {
         assertEquals(3, t.rows());
         assertEquals(2, t.cols());
         assertEquals(1.0, t.get(0, 0), 1e-12);
-        assertEquals(2.0, t.get(0, 1), 1e-12);
-        assertEquals(4.0, t.get(1, 0), 1e-12);
+        assertEquals(4.0, t.get(0, 1), 1e-12);
+        assertEquals(2.0, t.get(1, 0), 1e-12);
         assertEquals(6.0, t.get(2, 1), 1e-12);
     }
 
