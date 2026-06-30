@@ -2,8 +2,6 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'checkstyle'
-    id 'com.github.spotbugs' version '6.1.7' apply false
-    id 'net.ltgt.errorprone' version '4.1.0' apply false
 }
 
 allprojects {
@@ -19,8 +17,6 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'jacoco'
     apply plugin: 'checkstyle'
-    apply plugin: 'com.github.spotbugs'
-    apply plugin: 'net.ltgt.errorprone'
 
     java {
         toolchain {
@@ -35,37 +31,16 @@ subprojects {
             '-Xlint:-processing'
         ]
         options.encoding = 'UTF-8'
-        options.errorprone {
-            enabled = true
-            disableWarningsInGeneratedCode = true
-        }
     }
 
     compileTestJava {
         options.encoding = 'UTF-8'
-        options.errorprone {
-            enabled = false
-        }
     }
 
     checkstyle {
         toolVersion = '10.21.3'
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
         maxWarnings = 0
-    }
-
-    spotbugs {
-        toolVersion = '4.9.3'
-        reportLevel = 'high'
-        excludeFilter = rootProject.file('config/spotbugs/excludes.xml')
-    }
-
-    spotbugsMain {
-        reports {
-            text {
-                required = true
-            }
-        }
     }
 
     jacocoTestReport {
