@@ -2,8 +2,10 @@
 
 [![Build](https://github.com/kVeyra/sklearn-java/actions/workflows/ci.yml/badge.svg)](https://github.com/kVeyra/sklearn-java/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/kVeyra/sklearn-java/branch/develop/graph/badge.svg)](https://codecov.io/gh/kVeyra/sklearn-java)
+[![Javadoc](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://kVeyra.github.io/sklearn-java)
 [![Java](https://img.shields.io/badge/Java-21-blue)](https://openjdk.org/projects/jdk/21/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
+[![GitHub Discussions](https://img.shields.io/badge/Ask%20us-anything-blue.svg)](https://github.com/kVeyra/sklearn-java/discussions)
 [![GitHub stars](https://img.shields.io/github/stars/kVeyra/sklearn-java?style=social)](https://github.com/kVeyra/sklearn-java)
 
 **A production-quality Java reimplementation of Python's scikit-learn.** Covers the core ML API surface (in progress) with behavioral compatibility, numerical accuracy to 1e-8, and pure Java — no Python, JNI, or NumPy.
