@@ -56,6 +56,13 @@ public class DecisionTreeClassifier implements Predictor<Matrix, Vector, Vector>
     private long seed;
 
     /**
+     * Create a decision tree classifier with default parameters.
+     */
+    public DecisionTreeClassifier() {
+        this(Integer.MAX_VALUE, 2, 1, "gini", false, 42);
+    }
+
+    /**
      * Create a decision tree classifier.
      *
      * @param maxDepth         maximum depth of the tree

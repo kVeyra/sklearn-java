@@ -48,6 +48,13 @@ public class DecisionTreeRegressor implements Predictor<Matrix, Vector, Vector> 
     private long seed;
 
     /**
+     * Create a decision tree regressor with default parameters.
+     */
+    public DecisionTreeRegressor() {
+        this(Integer.MAX_VALUE, 2, 1, false, 42);
+    }
+
+    /**
      * Create a decision tree regressor.
      *
      * @param maxDepth         maximum depth of the tree

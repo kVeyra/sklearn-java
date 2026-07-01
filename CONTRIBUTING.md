@@ -1,48 +1,86 @@
 # Contributing to sklearn-java
 
-## Development Workflow
+Thanks for your interest in contributing! sklearn-java aims to reimplement 100% of scikit-learn's public API in pure Java. Every contribution gets us closer to that goal.
 
-1. **Issue First** — Create an issue describing the feature or bug
-2. **Feature Branch** — Branch from `develop`: `feature/my-feature`
-3. **Implement** — Follow the project principles
-4. **Test** — Every public method needs unit tests
-5. **Validate** — Compare outputs against Python sklearn (tolerance: 1e-8)
-6. **Document** — Javadoc for every public class and method
-7. **PR** — Open pull request to `develop`
-8. **Review** — All PRs require review before merging
-9. **Merge** — Squash-merge into `develop`
+## Getting Started
+
+1. **Pick an issue** — Check [open issues](https://github.com/kVeyra/sklearn-java/issues) or the [COVERAGE_PLAN.md](COVERAGE_PLAN.md) for unimplemented algorithms.
+2. **Discuss** — Comment on the issue to let others know you're working on it.
+3. **Branch** — Create a feature branch from `develop`: `git checkout -b feature/my-algorithm develop`
+4. **Implement** — Follow the patterns in existing code.
+5. **Submit a PR** — Open a pull request to `develop`.
 
 ## Branch Strategy
 
 - `main` — Production-ready releases
-- `develop` — Integration branch
-- `feature/*` — New features
+- `develop` — Integration branch (base all PRs here)
+- `feature/*` — New algorithms and features
 - `fix/*` — Bug fixes
-- `benchmark/*` — Performance benchmarks
+- `benchmark/*` — Performance benchmarks and validation
 
-## Coding Standards
+PRs are **squash-merged** into `develop`.
 
-- Java 21+
-- Follow Google Java Format
-- No Python-isms: no dynamic typing, no duck typing
-- Prefer readability over cleverness
-- All algorithms must be deterministic
-- Numerical tolerance against sklearn: 1e-8
+## Development Workflow
 
-## Validation
+### Before implementing an algorithm
 
-Every algorithm must include a Python validation script:
+1. Fetch the Python sklearn source to understand the algorithm
+2. Identify the sklearn class/function you're implementing
+3. Check the module structure and existing patterns
 
-```python
-# validation/validate_linear_regression.py
-from sklearn.linear_model import LinearRegression
-import numpy as np
+### Implementation Requirements
 
-X = np.array(...)
-y = np.array(...)
-model = LinearRegression().fit(X, y)
-print(model.coef_)
-print(model.intercept_)
+| Requirement | Details |
+|-------------|---------|
+| **API** | Match sklearn exactly: `.fit()`, `.predict()`, `.transform()`, `.score()` |
+| **Javadoc** | Every public class, constructor, and method |
+| **Tests** | JUnit 5 tests covering normal cases, edge cases (empty data, single class, constant features) |
+| **Determinism** | All algorithms must produce identical results given the same seed |
+| **Tolerance** | Numerical results must match sklearn within 1e-8 (absolute where possible) |
+| **No Python-isms** | Pure Java — no dynamic typing, no duck typing, no JNI/Python interop |
+
+### Coding Standards
+
+- **Java 21+** — Use records, sealed interfaces, pattern matching where appropriate
+- **Google Java Format** — Consistent code style
+- **No external ML libraries** — Only standard library + JUnit 5 + JaCoCo
+- **Prefer readability** — Clear variable names, linear control flow
+- **Validation** — Use `Validation.checkMatrix()`, `Validation.checkFitted()` from `utils`
+
+### Test Patterns
+
+```java
+@Test
+void testBasicFitAndPredict() {
+    Matrix X = new Matrix(new double[][]{{1, 2}, {2, 3}, {10, 11}, {11, 12}});
+    Vector y = new Vector(new double[]{0, 0, 1, 1});
+
+    MyEstimator est = new MyEstimator(params);
+    est.fit(X, y);
+    Vector pred = est.predict(X);
+
+    assertEquals(4, pred.size());
+    assertTrue(est.score(X, y) > 0.8);
+}
 ```
 
-Compare outputs with `sklearn-java` benchmarks.
+## Submitting a PR
+
+1. Ensure all tests pass: `./gradlew build`
+2. Ensure coverage doesn't decrease: `./gradlew jacocoTestReport`
+3. Write a concise PR description referencing the issue
+4. Include validation notes (how results match sklearn)
+
+### PR Checklist
+
+- [ ] New algorithm matches sklearn API
+- [ ] JUnit 5 tests added (normal + edge cases)
+- [ ] Javadoc on all public members
+- [ ] Algorithm is deterministic
+- [ ] Validated against sklearn (tolerance: 1e-8)
+- [ ] Code follows project style
+- [ ] `./gradlew build` passes (checkstyle + tests)
+
+## Questions?
+
+Open a [Discussion](https://github.com/kVeyra/sklearn-java/discussions) or ask in the issue tracker.
