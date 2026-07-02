@@ -25,18 +25,21 @@
 | `math` | ✅ Complete | Vectors, dense matrices, random generators |
 | `core` | ✅ Complete | Estimator/Predictor/Transformer interfaces, Pipeline |
 | `preprocessing` | ✅ Complete | StandardScaler, MinMaxScaler, Normalizer, RobustScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder, OrdinalEncoder, PolynomialFeatures, Binarizer, KBinsDiscretizer, FunctionTransformer |
-| `linear_model` | ✅ Complete | LinearRegression, Ridge, Lasso, ElasticNet, LogisticRegression, SGDClassifier, SGDRegressor, RidgeCV, BayesianRidge, HuberRegressor, Perceptron, PassiveAggressiveClassifier/Regressor, LassoCV, ElasticNetCV |
-| `tree` | ✅ Complete | DecisionTreeClassifier/Regressor (Gini, Entropy, MSE), random splits |
+| `linear_model` | ✅ Complete | LinearRegression, Ridge, Lasso, ElasticNet, LogisticRegression, SGDClassifier, SGDRegressor, RidgeCV, BayesianRidge, HuberRegressor, Perceptron, PassiveAggressiveClassifier/Regressor, LassoCV, ElasticNetCV, RidgeClassifier, RidgeClassifierCV |
+| `tree` | ✅ Complete | DecisionTreeClassifier/Regressor, ExtraTreeClassifier/Regressor (random thresholds) |
 | `ensemble` | ✅ Complete | RandomForest, AdaBoost, GradientBoosting, Bagging, Voting, Stacking, IsolationForest, ExtraTrees, ExtraTreesEmbedding, HistGradientBoosting |
-| `svm` | ✅ Complete | SVC (one-vs-one), SVR (ε-insensitive), linear/poly/RBF/sigmoid kernels |
+| `svm` | ✅ Complete | SVC (one-vs-one), SVR, LinearSVC, linear/poly/RBF/sigmoid kernels |
 | `naive_bayes` | ✅ Complete | GaussianNB, MultinomialNB, BernoulliNB |
 | `neighbors` | ✅ Complete | KNeighborsClassifier, KNeighborsRegressor, NearestNeighbors, RadiusNeighborsClassifier/Regressor, LocalOutlierFactor, KernelDensity |
 | `cluster` | ✅ Complete | KMeans (Lloyd's + k-means++), DBSCAN |
-| `feature_selection` | ✅ Complete | VarianceThreshold, SelectKBest (f_classif, f_regression, chi2), RFE, SelectFromModel |
+| `feature_selection` | ✅ Complete | VarianceThreshold, SelectKBest, SelectPercentile, GenericUnivariateSelect, RFE, SelectFromModel, FScoring (f_classif, f_regression, r_regression) |
 | `neural_network` | ✅ Complete | MLPClassifier, MLPRegressor (ReLU/tanh/logistic, SGD/Adam, backprop) |
+| `dummy` | ✅ Complete | DummyClassifier, DummyRegressor |
+| `impute` | ✅ Complete | SimpleImputer (mean/median/most_frequent/constant) |
 | `decomposition` | ✅ Complete | PCA |
 | `metrics` | ✅ Complete | ClassificationMetrics, RegressionMetrics, RankingMetrics, PairwiseMetrics, ClusteringMetrics |
-| `model_selection` | ✅ Complete | KFold, StratifiedKFold, CrossValidation, GridSearchCV, TrainTestSplit |
+| `model_selection` | ✅ Complete | KFold, StratifiedKFold, LeaveOneOut, RepeatedKFold, CrossValidation, GridSearchCV, TrainTestSplit |
+| `pipeline` | ✅ Complete | Pipeline, FeatureUnion, make_pipeline |
 | `utils` | ✅ Complete | Validation, matrix/vector utilities |
 | `datasets` | ❌ Not started | Toy datasets will be added in Phase C |
 
