@@ -8,6 +8,9 @@ allprojects {
     group = 'org.sklearn'
     version = '0.1.0-SNAPSHOT'
 
+    // Version alias for release jar naming
+    ext.releaseVersion = '0.0.1'
+
     repositories {
         mavenCentral()
     }
@@ -61,4 +64,50 @@ subprojects {
         useJUnitPlatform()
         finalizedBy jacocoTestReport
     }
+}
+
+// --- Release artifact tasks ---
+
+def releaseVersion = ext.releaseVersion
+
+task fatJar(type: Jar) {
+    dependsOn subprojects.jar
+    archiveFileName = "sklearn-java-${releaseVersion}.jar"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from subprojects.collect { p ->
+        p.sourceSets.main.output
+    }
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'sklearn-java',
+            'Implementation-Version': releaseVersion,
+            'Built-By': System.properties['user.name']
+        )
+    }
+}
+
+task moduleJars(type: Copy) {
+    dependsOn subprojects.jar
+    into "${buildDir}/libs/sklearn-java-${releaseVersion}/lib"
+    from subprojects.collect { p ->
+        "${p.buildDir}/libs/${p.name}-0.1.0-SNAPSHOT.jar"
+    }
+    rename { String fileName ->
+        fileName.replace('-0.1.0-SNAPSHOT', "-${releaseVersion}")
+    }
+}
+
+task releaseZip(type: Zip) {
+    dependsOn moduleJars
+    archiveFileName = "sklearn-java-${releaseVersion}.zip"
+    destinationDirectory = layout.buildDirectory.dir("libs")
+    from "${buildDir}/libs/sklearn-java-${releaseVersion}"
+    into "sklearn-java-${releaseVersion}"
+}
+
+task releasePrep {
+    dependsOn fatJar
+    dependsOn releaseZip
 }
