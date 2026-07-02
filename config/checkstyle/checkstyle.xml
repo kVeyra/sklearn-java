@@ -31,7 +31,7 @@
             <property name="max" value="200"/>
         </module>
         <module name="ParameterNumber">
-            <property name="max" value="10"/>
+            <property name="max" value="20"/>
         </module>
         <module name="MethodParamPad"/>
         <module name="NoWhitespaceAfter"/>

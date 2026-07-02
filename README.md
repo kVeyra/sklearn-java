@@ -25,18 +25,18 @@
 | `math` | ✅ Complete | Vectors, dense matrices, random generators |
 | `core` | ✅ Complete | Estimator/Predictor/Transformer interfaces, Pipeline |
 | `preprocessing` | ✅ Complete | StandardScaler, MinMaxScaler, Normalizer, RobustScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder, OrdinalEncoder, PolynomialFeatures, Binarizer, KBinsDiscretizer, FunctionTransformer |
-| `linear_model` | ✅ Complete | LinearRegression, Ridge, Lasso, ElasticNet, LogisticRegression |
+| `linear_model` | ✅ Complete | LinearRegression, Ridge, Lasso, ElasticNet, LogisticRegression, SGDClassifier, SGDRegressor, RidgeCV, BayesianRidge, HuberRegressor, Perceptron, PassiveAggressiveClassifier/Regressor, LassoCV, ElasticNetCV |
 | `tree` | ✅ Complete | DecisionTreeClassifier/Regressor (Gini, Entropy, MSE), random splits |
-| `ensemble` | ✅ Complete | RandomForest, AdaBoost, GradientBoosting, Bagging, Voting, Stacking, IsolationForest, ExtraTrees, ExtraTreesEmbedding |
+| `ensemble` | ✅ Complete | RandomForest, AdaBoost, GradientBoosting, Bagging, Voting, Stacking, IsolationForest, ExtraTrees, ExtraTreesEmbedding, HistGradientBoosting |
 | `svm` | ✅ Complete | SVC (one-vs-one), SVR (ε-insensitive), linear/poly/RBF/sigmoid kernels |
-| `naive_bayes` | ✅ Complete | GaussianNB |
-| `neighbors` | ✅ Complete | KNeighborsClassifier, KNeighborsRegressor |
+| `naive_bayes` | ✅ Complete | GaussianNB, MultinomialNB, BernoulliNB |
+| `neighbors` | ✅ Complete | KNeighborsClassifier, KNeighborsRegressor, NearestNeighbors, RadiusNeighborsClassifier/Regressor, LocalOutlierFactor, KernelDensity |
 | `cluster` | ✅ Complete | KMeans (Lloyd's + k-means++), DBSCAN |
-| `feature_selection` | ✅ Complete | VarianceThreshold |
+| `feature_selection` | ✅ Complete | VarianceThreshold, SelectKBest (f_classif, f_regression, chi2), RFE, SelectFromModel |
+| `neural_network` | ✅ Complete | MLPClassifier, MLPRegressor (ReLU/tanh/logistic, SGD/Adam, backprop) |
 | `decomposition` | ✅ Complete | PCA |
 | `metrics` | ✅ Complete | ClassificationMetrics, RegressionMetrics, RankingMetrics, PairwiseMetrics, ClusteringMetrics |
 | `model_selection` | ✅ Complete | KFold, StratifiedKFold, CrossValidation, GridSearchCV, TrainTestSplit |
-| `ensemble` (phase A2) | ✅ Complete | GradientBoosting, Bagging, Voting, Stacking, IsolationForest, ExtraTree, RandomTreesEmbedding |
 | `utils` | ✅ Complete | Validation, matrix/vector utilities |
 | `datasets` | ❌ Not started | Toy datasets will be added in Phase C |
 
@@ -65,6 +65,14 @@ GridSearchCV grid = new GridSearchCV(
 );
 grid.fit(X_train, y_train);
 System.out.println("Best params: " + grid.bestParams());
+```
+
+```java
+// Neural network classifier
+MLPClassifier mlp = new MLPClassifier(new int[]{64, 32}, "relu", "adam", 200);
+mlp.fit(X_train, y_train);
+Vector preds = mlp.predict(X_test);
+double acc = ClassificationMetrics.accuracy(y_test, preds);
 ```
 
 ## Building
@@ -98,9 +106,9 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 |-------|-------|--------|
 | Phase A1 | Metrics + Model Selection | ✅ Complete |
 | Phase A2 | Ensemble Methods | ✅ Complete |
-| Phase A3 | Linear Models (SGD, RidgeCV, Bayesian, Huber) | 🔜 Next |
-| Phase A4 | Naive Bayes + Neighbors (full) | 🔜 Planned |
-| Phase A5 | Neural Network + Feature Selection | 🔜 Planned |
+| Phase A3 | Linear Models (SGD, RidgeCV, Bayesian, Huber, Perceptron, PA, CV variants) | ✅ Complete |
+| Phase A4 | Naive Bayes + Neighbors (full: Multinomial/Bernoulli, NearestNeighbors, RadiusNeighbors, LOF, KernelDensity) | ✅ Complete |
+| Phase A5 | Neural Network (MLP) + Feature Selection (SelectKBest, RFE, SelectFromModel) | 🔜 Written, testing pending |
 | Phase B | Manifold, Impute, Pipeline (full) | 📋 Planned |
 | Phase C | Decomposition, Covariance, Cross-decomposition | 📋 Planned |
 | Phase D | Semi-supervised, Multi-output, Niche estimators | 📋 Planned |
