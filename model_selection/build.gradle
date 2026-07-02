@@ -1,0 +1,6 @@
+dependencies {
+    api project(':core')
+    api project(':math')
+    api project(':utils')
+    testImplementation project(':linear_model')
+}

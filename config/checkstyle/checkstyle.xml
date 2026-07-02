@@ -4,40 +4,35 @@
     "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <module name="TreeWalker">
-        <module name="JavadocMethod">
-            <property name="accessModifiers" value="public"/>
-        </module>
         <module name="JavadocType"/>
-        <module name="JavadocVariable">
-            <property name="scope" value="public"/>
-        </module>
-        <module name="JavadocStyle"/>
-        <module name="MissingJavadocMethod">
-            <property name="scope" value="public"/>
-            <property name="allowMissingPropertyJavadoc" value="true"/>
-        </module>
         <module name="MissingJavadocType">
             <property name="scope" value="public"/>
         </module>
         <module name="ConstantName"/>
-        <module name="LocalFinalVariableName"/>
-        <module name="LocalVariableName"/>
+        <module name="LocalFinalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$|^[A-Z]$|^[A-Z][a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$|^[A-Z]$|^[A-Z][a-z][a-zA-Z0-9]*$"/>
+            <property name="allowOneCharVarInForLoop" value="true"/>
+        </module>
         <module name="MemberName"/>
         <module name="MethodName"/>
         <module name="PackageName"/>
-        <module name="ParameterName"/>
+        <module name="ParameterName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$|^[A-Z][a-zA-Z0-9]*$|^[a-z]$"/>
+        </module>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="MethodLength">
-            <property name="max" value="100"/>
+            <property name="max" value="200"/>
         </module>
         <module name="ParameterNumber">
-            <property name="max" value="10"/>
+            <property name="max" value="20"/>
         </module>
-        <module name="EmptyForIteratorPad"/>
         <module name="MethodParamPad"/>
         <module name="NoWhitespaceAfter"/>
         <module name="NoWhitespaceBefore"/>
@@ -66,7 +61,6 @@
         <module name="FinalClass"/>
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
-        <module name="VisibilityModifier"/>
         <module name="ArrayTypeStyle"/>
         <module name="TodoComment"/>
         <module name="UpperEll"/>

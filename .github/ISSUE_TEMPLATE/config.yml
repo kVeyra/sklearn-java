@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: sklearn-java Discussions
+    url: https://github.com/kVeyra/sklearn-java/discussions
+    about: Please ask usage questions here.
+  - name: scikit-learn Python reference
+    url: https://scikit-learn.org/stable/
+    about: For algorithm behavior reference.
