@@ -36,6 +36,8 @@ public class MLPRegressor implements Predictor<Matrix, Vector, Vector> {
     private List<Double> lossCurve;
     private List<Double> validationScores;
     private int noImprovementCount;
+    private double momentum;
+    private boolean nesterovsMomentum;
 
     public MLPRegressor() {
         this(new int[]{100}, "relu", "adam", 0.0001, "constant", 0.001, 200, true, 1e-4, 200, true, 0.1, 10, 42);
@@ -63,9 +65,6 @@ public class MLPRegressor implements Predictor<Matrix, Vector, Vector> {
         this.nIterNoChange = nIterNoChange;
         this.randomSeed = randomSeed;
     }
-
-    private double momentum;
-    private boolean nesterovsMomentum;
 
     @Override
     public MLPRegressor fit(Matrix X, Vector y) {
