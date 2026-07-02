@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':core')
+    api project(':math')
+    api project(':utils')
+    api project(':metrics')
+    api project(':multiclass')
+    testImplementation project(':linear_model')
+}
