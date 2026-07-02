@@ -3,4 +3,5 @@ dependencies {
     api project(':math')
     api project(':utils')
     implementation project(':model_selection')
+    implementation project(':metrics')
 }

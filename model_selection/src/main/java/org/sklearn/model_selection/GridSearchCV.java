@@ -184,7 +184,8 @@ public class GridSearchCV implements Predictor<Matrix, Vector, Vector> {
 
     private void setField(Object obj, String name, double value) {
         try {
-            Field field = obj.getClass().getField(name);
+            Field field = obj.getClass().getDeclaredField(name);
+            field.setAccessible(true);
             Class<?> type = field.getType();
             if (type == int.class || type == Integer.class) {
                 field.setInt(obj, (int) Math.round(value));
